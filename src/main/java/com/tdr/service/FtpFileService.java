@@ -57,6 +57,7 @@ public class FtpFileService {
             if (isActiveType) {
                 //主动模式
                 ftpClient.enterLocalActiveMode();
+                ftpClient.setRemoteVerificationEnabled(false);
             } else {
                 //被动模式
                 ftpClient.enterLocalPassiveMode();
