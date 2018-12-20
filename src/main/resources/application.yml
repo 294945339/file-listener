@@ -2,14 +2,11 @@
 sys:
   localFilePath: H:\ftpRead
   fileMaxSize: 50
+
+#ftp设置
 ftp:
   host: 127.0.0.1
   port: 21
   user: test
   password: 123456
   filePath: /
-
-
-#配置
-#单文件:50mb
-

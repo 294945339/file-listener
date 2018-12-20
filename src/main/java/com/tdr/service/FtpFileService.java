@@ -1,5 +1,7 @@
 package com.tdr.service;
 
+import cn.hutool.core.io.FileUtil;
+import com.tdr.util.FileSizeUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +32,9 @@ public class FtpFileService {
     @Value("${ftp.port}")
     private int ftpPort;
 
+    @Value("${sys.fileMaxSize}")
+    private String fileMaxSize;
+
     /**
      * 获取ftp连接
      *
@@ -52,12 +57,12 @@ public class FtpFileService {
     /**
      * 上传文件（可供Action/Controller层使用）
      *
-     * @param pathname    FTP服务器保存目录
+     * @param ftpPath     FTP服务器保存目录
      * @param fileName    上传到FTP服务器后的文件名称
      * @param inputStream 输入文件流
      * @return
      */
-    public boolean uploadFile(String pathname, String fileName, InputStream inputStream) {
+    public boolean uploadFile(String ftpPath, String fileName, InputStream inputStream) {
         boolean flag = false;
         FTPClient ftpClient = this.getFTPClient();
         try {
@@ -67,8 +72,8 @@ public class FtpFileService {
                 return false;
             }
             ftpClient.setFileType(FTPClient.BINARY_FILE_TYPE);
-            ftpClient.makeDirectory(pathname);
-            ftpClient.changeWorkingDirectory(pathname);
+            ftpClient.makeDirectory(ftpPath);
+            ftpClient.changeWorkingDirectory(ftpPath);
             ftpClient.storeFile(fileName, inputStream);
             inputStream.close();
             ftpClient.logout();
@@ -97,6 +102,9 @@ public class FtpFileService {
      */
     public boolean uploadFileFromProduction(String ftpPath, String fileName, String originFilePath) {
         boolean flag = false;
+        if (!FileSizeUtil.notIsBigByMB(fileMaxSize, originFilePath)) {
+            return false;
+        }
         try {
             InputStream inputStream = new FileInputStream(new File(originFilePath));
             flag = uploadFile(ftpPath, fileName, inputStream);
@@ -115,6 +123,9 @@ public class FtpFileService {
      */
     public boolean uploadFileFromProduction(String ftpPath, String originFilePath) {
         boolean flag = false;
+        if (FileSizeUtil.notIsBigByMB(fileMaxSize, originFilePath)) {
+            return false;
+        }
         try {
             String fileName = new File(originFilePath).getName();
             InputStream inputStream = new FileInputStream(new File(originFilePath));

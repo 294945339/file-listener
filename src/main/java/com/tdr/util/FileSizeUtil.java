@@ -12,6 +12,12 @@ import java.text.DecimalFormat;
 
 public class FileSizeUtil {
 
+    /**
+     * 获取文件的大小(自动设置单位)
+     *
+     * @param file
+     * @return
+     */
     public static String GetFileSize(File file) {
         String size;
         if (file.exists() && file.isFile()) {
@@ -34,7 +40,13 @@ public class FileSizeUtil {
         return size;
     }
 
-    public static BigDecimal GetFileSizeByMB(File file) {
+    /**
+     * 获取文件的大小(单位为MB)
+     *
+     * @param file 文件
+     * @return
+     */
+    public static BigDecimal getFileSizeByMB(File file) {
         BigDecimal sizeBig = new BigDecimal("0");
         try {
             if (file.exists() && file.isFile()) {
@@ -49,12 +61,25 @@ public class FileSizeUtil {
         return sizeBig;
     }
 
-    public static boolean isBigByMB() {
+    /**
+     * 比较2个文件的大小单位(MB)
+     *
+     * @return
+     */
+    public static boolean notIsBigByMB(String maxSize, String filePath) {
         boolean base = false;
-        
-
+        try {
+            BigDecimal maxBig = new BigDecimal(maxSize);
+            File file = new File(filePath);
+            BigDecimal fileMaxBig = getFileSizeByMB(file);
+            int bigCompare = maxBig.compareTo(fileMaxBig);
+            if (0 > bigCompare) {
+                base = true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return base;
     }
-
 
 }

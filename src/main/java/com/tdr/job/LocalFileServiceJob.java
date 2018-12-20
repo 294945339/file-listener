@@ -1,20 +1,22 @@
-package com.tdr.service;
+package com.tdr.job;
 
 import cn.hutool.core.io.FileUtil;
+import com.tdr.service.LocalFileService;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import javax.annotation.Resource;
 import java.io.File;
 
 /**
- * @author dj
- * @Date: 2018/12/19 15:36
- * @Description: 第一次启动系统;触发方法
+ * @author: dj
+ * @Date: 2018/12/20 10:46
+ * @Description:
  */
 
-@Service
-public class FirstStartSysService {
+public class LocalFileServiceJob extends QuartzJobBean {
 
     @Value("${sys.localFilePath}")
     private String localFilePath;
@@ -22,7 +24,12 @@ public class FirstStartSysService {
     @Resource
     private LocalFileService localFileService;
 
-    public boolean go() {
+    @Override
+    protected void executeInternal(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+        this.go();
+    }
+
+    private void go() {
         //读取文件夹下面所有文件
         //遍历上传和删除
         File folder = FileUtil.file(localFilePath);
@@ -32,7 +39,5 @@ public class FirstStartSysService {
             File[] files = FileUtil.ls(localFilePath);
             localFileService.fileUploadToFtpAndDelLocalFiles(files);
         }
-        return false;
     }
 }
-

@@ -1,7 +1,6 @@
 package com.tdr.service;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.NumberUtil;
 import com.tdr.util.FileSizeUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -19,9 +18,6 @@ public class LocalFileService {
 
     @Value("${ftp.filePath}")
     private String ftpFilePath;
-
-    @Value("${sys.fileMaxSize}")
-    private Long fileMaxSize;
 
     @Resource
     private FtpFileService ftpFileService;
@@ -57,8 +53,10 @@ public class LocalFileService {
      */
     private boolean fileUploadToFtp(File localFile) {
         boolean base = false;
-        BigDecimal sizeBig = FileSizeUtil.GetFileSizeByMB(localFile);
         try {
+            if (FileUtil.isEmpty(localFile)) {
+                return false;
+            }
             base = ftpFileService.uploadFileFromProduction(ftpFilePath, localFile.getPath());
         } catch (Exception e) {
             e.printStackTrace();
