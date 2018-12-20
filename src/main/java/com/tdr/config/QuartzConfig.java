@@ -1,6 +1,7 @@
 package com.tdr.config;
 
 import com.tdr.job.LocalFileServiceJob;
+import org.quartz.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class QuartzConfig {
+
     @Bean
     public JobDetail LocalFileServiceDetail() {
         return JobBuilder.newJob(LocalFileServiceJob.class).withIdentity("LocalFileService").storeDurably().build();

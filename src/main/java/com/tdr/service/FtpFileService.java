@@ -1,6 +1,7 @@
 package com.tdr.service;
 
-import cn.hutool.core.io.FileUtil;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.tdr.util.FileSizeUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,8 @@ import org.apache.commons.net.ftp.FTPReply;
 @Service
 public class FtpFileService {
 
+    private static final Log log = LogFactory.get();
+
     @Value("${ftp.user}")
     private String ftpUser;
 
@@ -35,6 +38,9 @@ public class FtpFileService {
     @Value("${sys.fileMaxSize}")
     private String fileMaxSize;
 
+    @Value("${ftp.isActiveType}")
+    private boolean isActiveType;
+
     /**
      * 获取ftp连接
      *
@@ -48,7 +54,15 @@ public class FtpFileService {
             ftpClient.connect(ftpHost, ftpPort);
             //登录FTP服务器
             ftpClient.login(ftpUser, ftpPassword);
+            if (isActiveType) {
+                //主动模式
+                ftpClient.enterLocalActiveMode();
+            } else {
+                //被动模式
+                ftpClient.enterLocalPassiveMode();
+            }
         } catch (Exception e) {
+            log.error("ftp连接失败:" + e);
             e.printStackTrace();
         }
         return ftpClient;
@@ -78,7 +92,9 @@ public class FtpFileService {
             inputStream.close();
             ftpClient.logout();
             flag = true;
+            log.info("上传文件成功:" + fileName);
         } catch (Exception e) {
+            log.error("上传文件失败:" + fileName + ";原因:" + e);
             e.printStackTrace();
         } finally {
             if (ftpClient.isConnected()) {
@@ -103,6 +119,7 @@ public class FtpFileService {
     public boolean uploadFileFromProduction(String ftpPath, String fileName, String originFilePath) {
         boolean flag = false;
         if (!FileSizeUtil.notIsBigByMB(fileMaxSize, originFilePath)) {
+            log.error("上传文件失败:" + originFilePath + ";原因:文件超过" + fileMaxSize + "MB");
             return false;
         }
         try {
@@ -124,6 +141,7 @@ public class FtpFileService {
     public boolean uploadFileFromProduction(String ftpPath, String originFilePath) {
         boolean flag = false;
         if (FileSizeUtil.notIsBigByMB(fileMaxSize, originFilePath)) {
+            log.error("上传文件失败:" + originFilePath + ";原因:文件超过" + fileMaxSize + "MB");
             return false;
         }
         try {

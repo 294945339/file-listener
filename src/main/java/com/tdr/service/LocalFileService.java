@@ -1,13 +1,13 @@
 package com.tdr.service;
 
 import cn.hutool.core.io.FileUtil;
-import com.tdr.util.FileSizeUtil;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.File;
-import java.math.BigDecimal;
 
 /**
  * @author dj
@@ -15,6 +15,8 @@ import java.math.BigDecimal;
 
 @Service
 public class LocalFileService {
+
+    private static final Log log = LogFactory.get();
 
     @Value("${ftp.filePath}")
     private String ftpFilePath;
@@ -69,7 +71,12 @@ public class LocalFileService {
      * @param localFilePath
      */
     private void delLocalFile(String localFilePath) {
-        FileUtil.del(localFilePath);
+        try {
+            FileUtil.del(localFilePath);
+            log.info("删除文件成功:" + localFilePath);
+        } catch (Exception e) {
+            log.error("删除文件失败:" + localFilePath + ";原因:" + e);
+        }
     }
 
 }
