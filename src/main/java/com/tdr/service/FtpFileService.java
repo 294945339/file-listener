@@ -6,10 +6,7 @@ import com.tdr.util.FileSizeUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
@@ -93,9 +90,9 @@ public class FtpFileService {
             inputStream.close();
             ftpClient.logout();
             flag = true;
-            log.info("上传文件成功:" + fileName);
+            log.info("本地文件上传成功:" + fileName);
         } catch (Exception e) {
-            log.error("上传文件失败:" + fileName + ";原因:" + e);
+            log.error("本地文件上传失败:" + fileName + ";原因:" + e);
             e.printStackTrace();
         } finally {
             if (ftpClient.isConnected()) {
@@ -120,13 +117,14 @@ public class FtpFileService {
     public boolean uploadFileFromProduction(String ftpPath, String fileName, String originFilePath) {
         boolean flag = false;
         if (!FileSizeUtil.notIsBigByMB(fileMaxSize, originFilePath)) {
-            log.error("上传文件失败:" + originFilePath + ";原因:文件超过" + fileMaxSize + "MB");
+            log.error("本地文件上传失败:" + originFilePath + ";原因:文件超过" + fileMaxSize + "MB");
             return false;
         }
         try {
             InputStream inputStream = new FileInputStream(new File(originFilePath));
             flag = uploadFile(ftpPath, fileName, inputStream);
         } catch (Exception e) {
+            log.error("本地文件上传失败:" + originFilePath + ";原因:文件超过" + fileMaxSize + "MB");
             e.printStackTrace();
         }
         return flag;
@@ -135,21 +133,22 @@ public class FtpFileService {
     /**
      * 上传文件（不可以进行文件的重命名操作）
      *
-     * @param ftpPath        FTP服务器保存目录
-     * @param originFilePath 待上传文件的名称（绝对地址）
+     * @param ftpFileDownloadPath FTP服务器保存目录
+     * @param originFilePath      待上传文件的名称（绝对地址）
      * @return
      */
-    public boolean uploadFileFromProduction(String ftpPath, String originFilePath) {
+    public boolean uploadFileFromProduction(String ftpFileDownloadPath, String originFilePath) {
         boolean flag = false;
         if (FileSizeUtil.notIsBigByMB(fileMaxSize, originFilePath)) {
-            log.error("上传文件失败:" + originFilePath + ";原因:文件超过" + fileMaxSize + "MB");
+            log.error("本地文件上传失败:" + originFilePath + ";原因:文件超过" + fileMaxSize + "MB");
             return false;
         }
         try {
             String fileName = new File(originFilePath).getName();
             InputStream inputStream = new FileInputStream(new File(originFilePath));
-            flag = uploadFile(ftpPath, fileName, inputStream);
+            flag = uploadFile(ftpFileDownloadPath, fileName, inputStream);
         } catch (Exception e) {
+            log.error("本地文件上传失败:" + originFilePath + ";原因:文件超过" + fileMaxSize + "MB");
             e.printStackTrace();
         }
         return flag;
@@ -190,6 +189,48 @@ public class FtpFileService {
         return flag;
     }
 
+
+    /**
+     * 从FTP下载文件到本地
+     *
+     * @param ftpFileUploadPath     FTP上的目标文件路径
+     * @param localFileDownloadPath 下载到本地的文件路径
+     */
+    public void downloadFileFromFTP(String ftpFileUploadPath, String localFileDownloadPath) {
+        InputStream is = null;
+        FileOutputStream fos = null;
+        OutputStream os;
+        FileInputStream fis;
+        try {
+            FTPClient ftpClient = this.getFTPClient();
+            // 获取ftp上的文件
+            os = ftpClient.storeFileStream(ftpFileUploadPath);
+            fis = new FileInputStream(new File(localFileDownloadPath));
+            // 文件保存方式一
+            int length;
+            byte[] bytes = new byte[1024];
+            while ((length = fis.read(bytes)) != -1) {
+                os.write(bytes, 0, length);
+            }
+//            ftpClient.storeFile(localFileDownloadPath, new FileInputStream(new File(localFileDownloadPath)));
+//            ftpClient.completePendingCommand();
+            log.info("FTP文件上传成功:" + ftpFileUploadPath);
+        } catch (Exception e) {
+            log.error("FTP文件下载失败:" + ftpFileUploadPath + ";原因:" + e);
+        } finally {
+            try {
+                if (null != fos) {
+                    fos.close();
+                }
+                if (null != is) {
+                    is.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 //    public static void main(String[] args) {
 //        String hostname = "127.0.0.1";
 //        int port = 21;
@@ -198,7 +239,6 @@ public class FtpFileService {
 //        String pathname = "business/ebook";
 //        String filename = "big11.rar";
 //        String originfilename = "H:\\ftpRead\\1.xlsx";
-//        FtpFileService ftpService = new FtpFileService();
 //        ftpService.uploadFileFromProduction(hostname, port, username, password, pathname, filename, originfilename);
 //    }
 

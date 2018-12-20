@@ -2,6 +2,7 @@ package com.tdr.config;
 
 import com.tdr.job.LocalFileServiceJob;
 import org.quartz.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,17 +15,21 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class QuartzConfig {
 
+    @Value("${sys.jobInterval}")
+    private int jobInterval;
+
     @Bean
-    public JobDetail LocalFileServiceDetail() {
+    public JobDetail localFileServiceDetail() {
         return JobBuilder.newJob(LocalFileServiceJob.class).withIdentity("LocalFileService").storeDurably().build();
     }
 
     @Bean
-    public Trigger LocalFileServiceTrigger() {
-        CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule("*/30 * * * * ?");
-        return TriggerBuilder.newTrigger().forJob(LocalFileServiceDetail())
+    public Trigger localFileServiceTrigger() {
+        SimpleScheduleBuilder simpleScheduleBuilder = SimpleScheduleBuilder.simpleSchedule()
+                .withIntervalInSeconds(jobInterval).repeatForever();
+        return TriggerBuilder.newTrigger().forJob(localFileServiceDetail())
                 .withIdentity("LocalFileService")
-                .withSchedule(scheduleBuilder)
+                .withSchedule(simpleScheduleBuilder)
                 .build();
     }
 }

@@ -1,6 +1,8 @@
 package com.tdr.job;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.StrUtil;
+import com.tdr.service.FtpFileService;
 import com.tdr.service.LocalFileService;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -9,6 +11,7 @@ import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import javax.annotation.Resource;
 import java.io.File;
+import java.util.List;
 
 /**
  * @author: dj
@@ -18,26 +21,41 @@ import java.io.File;
 
 public class LocalFileServiceJob extends QuartzJobBean {
 
-    @Value("${sys.localFilePath}")
-    private String localFilePath;
+    @Value("${sys.localFileUploadPath}")
+    private String localFileUploadPath;
+
+    @Value("${sys.localFileDownloadPath}")
+    private String localFileDownloadPath;
+
+    @Value("${ftp.ftpFileUploadPath}")
+    private String ftpFileUploadPath;
+
+    @Value("${ftp.ftpFileDownloadPath}")
+    private String ftpFileDownloadPath;
 
     @Resource
     private LocalFileService localFileService;
 
+    @Resource
+    private FtpFileService ftpFileService;
+
     @Override
     protected void executeInternal(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        this.go();
+        this.upload();
+//        this.down();
     }
 
-    private void go() {
-        //读取文件夹下面所有文件
-        //遍历上传和删除
-        File folder = FileUtil.file(localFilePath);
-        //判断文件夹是否为空
-        if (!FileUtil.isEmpty(folder)) {
-            //不是空;则查询出文件下面所有的文件
-            File[] files = FileUtil.ls(localFilePath);
-            localFileService.fileUploadToFtpAndDelLocalFiles(files);
-        }
+    private void down() {
+        ftpFileService.downloadFileFromFTP(ftpFileUploadPath, localFileDownloadPath);
     }
+
+    /**
+     * 上传本地文件
+     */
+    private void upload() {
+        List<File> files = FileUtil.loopFiles(localFileUploadPath);
+        localFileService.fileUploadToFtpAndDelLocalFiles(files, localFileUploadPath, ftpFileDownloadPath);
+    }
+
+
 }

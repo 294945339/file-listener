@@ -1,15 +1,18 @@
 #系统配置
 sys:
-#  localFilePath: H:\ftpRead
-  localFilePath: /usr/ftpFile
+  jobInterval: 30
+  localFileUploadPath: H:\ftpRead\upload
+#  localFilePath: /usr/ftpFile
+  localFileDownloadPath: H:\ftpRead\download
   fileMaxSize: 50
 
 #ftp设置
 ftp:
-#  host: 127.0.0.1
-  host: 192.168.30.101
+  host: 127.0.0.1
+#  host: 192.168.30.101
   port: 21
   user: test
   password: 123456
-  filePath: /
+  ftpFileUploadPath: /upload
+  ftpFileDownloadPath: /download
   isActiveType: true
