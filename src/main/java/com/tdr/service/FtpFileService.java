@@ -79,7 +79,7 @@ public class FtpFileService {
      */
     public boolean uploadFileFromProduction(String ftpPath, String fileName, String originFilePath) {
         boolean flag = false;
-        if (!FileSizeUtil.notIsBigByMB(fileMaxSize, originFilePath)) {
+        if (FileSizeUtil.notIsBigByMB(fileMaxSize, originFilePath)) {
             log.error("本地文件上传失败:" + originFilePath + ";原因:文件超过" + fileMaxSize + "MB");
             return false;
         }
@@ -215,9 +215,16 @@ public class FtpFileService {
             String filePath;
             for (int currentFile = 0; currentFile < allFile.length; currentFile++) {
                 if (!allFile[currentFile].isDirectory()) {
-                    filePath = PathUtil.getLocalUploadPath(ftpFileUploadPath, localFileDownloadPath);
-                    if (downloadFile(allFile[currentFile].getName(), filePath, ftpFileUploadPath, ftpClient)) {
-                        deleteFile(ftpFileUploadPath, allFile[currentFile].getName(), ftpClient);
+                    String fileName = allFile[currentFile].getName();
+                    if (FileSizeUtil.notIsBigByMB(fileMaxSize, String.valueOf(allFile[currentFile].getSize()))) {
+                        log.error("本地文件上传失败:" + ftpClient + ";" + fileName +
+                                ";原因:文件超过" + fileMaxSize + "MB");
+                        return false;
+                    } else {
+                        filePath = PathUtil.getLocalUploadPath(ftpFileUploadPath, localFileDownloadPath);
+                        if (downloadFile(fileName, filePath, ftpFileUploadPath, ftpClient)) {
+                            deleteFile(ftpFileUploadPath, fileName, ftpClient);
+                        }
                     }
                 }
             }
