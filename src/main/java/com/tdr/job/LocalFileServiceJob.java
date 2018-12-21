@@ -12,6 +12,7 @@ import org.springframework.scheduling.quartz.QuartzJobBean;
 import javax.annotation.Resource;
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author: dj
@@ -42,20 +43,23 @@ public class LocalFileServiceJob extends QuartzJobBean {
     @Override
     protected void executeInternal(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         this.upload();
-//        this.down();
+        this.down();
     }
 
     private void down() {
-        ftpFileService.downloadFileFromFTP(ftpFileUploadPath, localFileDownloadPath);
+        ftpFileService.downLoadDirectory(localFileDownloadPath, ftpFileUploadPath);
     }
 
     /**
      * 上传本地文件
      */
     private void upload() {
-        List<File> files = FileUtil.loopFiles(localFileUploadPath);
-        localFileService.fileUploadToFtpAndDelLocalFiles(files, localFileUploadPath, ftpFileDownloadPath);
+        File[] files = FileUtil.ls(localFileUploadPath);
+        for (File f : files) {
+            List<File> fileList = FileUtil.loopFiles(f.getPath());
+            localFileService.fileUploadToFtpAndDelLocalFiles(fileList, ftpFileDownloadPath);
+        }
+        localFileService.clear(new File(localFileUploadPath));
     }
-
 
 }
