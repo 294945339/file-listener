@@ -216,10 +216,9 @@ public class FtpFileService {
             for (int currentFile = 0; currentFile < allFile.length; currentFile++) {
                 if (!allFile[currentFile].isDirectory()) {
                     String fileName = allFile[currentFile].getName();
-                    if (FileSizeUtil.notIsBigByMB(fileMaxSize, String.valueOf(allFile[currentFile].getSize()))) {
-                        log.error("本地文件上传失败:" + ftpClient + ";" + fileName +
+                    if (FileSizeUtil.notIsBigByMB(fileMaxSize, allFile[currentFile].getSize())) {
+                        log.error("ftp文件下载失败:" + ftpFileUploadPath + ";" + fileName +
                                 ";原因:文件超过" + fileMaxSize + "MB");
-                        return false;
                     } else {
                         filePath = PathUtil.getLocalUploadPath(ftpFileUploadPath, localFileDownloadPath);
                         if (downloadFile(fileName, filePath, ftpFileUploadPath, ftpClient)) {

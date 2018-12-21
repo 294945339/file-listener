@@ -62,6 +62,24 @@ public class FileSizeUtil {
     }
 
     /**
+     * 根据double转换成mb
+     *
+     * @param fileSize
+     * @return
+     */
+    public static BigDecimal getSizeByMB(double fileSize) {
+        BigDecimal sizeBig = new BigDecimal("0");
+        try {
+            DecimalFormat df = new DecimalFormat("#.00");
+            String size = df.format(fileSize / 1048576);
+            sizeBig = new BigDecimal(size);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return sizeBig;
+    }
+
+    /**
      * 比较2个文件的大小单位(MB)
      *
      * @return
@@ -72,6 +90,28 @@ public class FileSizeUtil {
             BigDecimal maxBig = new BigDecimal(maxSize);
             File file = new File(filePath);
             BigDecimal fileMaxBig = getFileSizeByMB(file);
+            int bigCompare = maxBig.compareTo(fileMaxBig);
+            if (0 > bigCompare) {
+                base = true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return base;
+    }
+
+    /**
+     * 判断double是否大于目标设置大小
+     *
+     * @param maxSize
+     * @param fileSize
+     * @return
+     */
+    public static boolean notIsBigByMB(String maxSize, double fileSize) {
+        boolean base = false;
+        try {
+            BigDecimal maxBig = new BigDecimal(maxSize);
+            BigDecimal fileMaxBig = getSizeByMB(fileSize);
             int bigCompare = maxBig.compareTo(fileMaxBig);
             if (0 > bigCompare) {
                 base = true;
