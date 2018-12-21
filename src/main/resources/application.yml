@@ -1,6 +1,6 @@
 #系统配置
 sys:
-  jobInterval: 30
+  jobInterval: 1
   localFileUploadPath: H:\ftpRead\upload
 #  localFilePath: /usr/ftpFile
   localFileDownloadPath: H:\ftpRead\download

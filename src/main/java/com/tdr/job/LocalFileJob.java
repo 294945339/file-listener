@@ -1,9 +1,10 @@
 package com.tdr.job;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.StrUtil;
-import com.tdr.service.FtpFileService;
+import cn.hutool.log.Log;
+import cn.hutool.log.LogFactory;
 import com.tdr.service.LocalFileService;
+import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +13,6 @@ import org.springframework.scheduling.quartz.QuartzJobBean;
 import javax.annotation.Resource;
 import java.io.File;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author: dj
@@ -20,16 +20,13 @@ import java.util.Objects;
  * @Description:
  */
 
-public class LocalFileServiceJob extends QuartzJobBean {
+@DisallowConcurrentExecution
+public class LocalFileJob extends QuartzJobBean {
+
+    private static final Log log = LogFactory.get();
 
     @Value("${sys.localFileUploadPath}")
     private String localFileUploadPath;
-
-    @Value("${sys.localFileDownloadPath}")
-    private String localFileDownloadPath;
-
-    @Value("${ftp.ftpFileUploadPath}")
-    private String ftpFileUploadPath;
 
     @Value("${ftp.ftpFileDownloadPath}")
     private String ftpFileDownloadPath;
@@ -37,17 +34,10 @@ public class LocalFileServiceJob extends QuartzJobBean {
     @Resource
     private LocalFileService localFileService;
 
-    @Resource
-    private FtpFileService ftpFileService;
-
     @Override
     protected void executeInternal(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+        log.info("本地文件上传定时任务启动");
         this.upload();
-        this.down();
-    }
-
-    private void down() {
-        ftpFileService.downLoadDirectory(localFileDownloadPath, ftpFileUploadPath);
     }
 
     /**

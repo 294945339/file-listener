@@ -75,14 +75,14 @@ public class FtpService {
         try {
             ftpClient.logout();
         } catch (IOException e) {
-            log.error("ftp连接失败:" + e);
+            log.error("ftp关闭链接失败:" + e);
             e.printStackTrace();
         } finally {
             if (ftpClient.isConnected()) {
                 try {
                     ftpClient.disconnect();
                 } catch (IOException e) {
-                    log.error("ftp连接失败,强制关闭链接:" + e);
+                    log.error("ftp关闭链接失败,强制关闭链接:" + e);
                     e.printStackTrace();
                 }
             }

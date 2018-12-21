@@ -1,6 +1,7 @@
 package com.tdr.config;
 
-import com.tdr.job.LocalFileServiceJob;
+import com.tdr.job.FtpFileJob;
+import com.tdr.job.LocalFileJob;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -19,17 +20,30 @@ public class QuartzConfig {
     private int jobInterval;
 
     @Bean
-    public JobDetail localFileServiceDetail() {
-        return JobBuilder.newJob(LocalFileServiceJob.class).withIdentity("LocalFileService").storeDurably().build();
+    public JobDetail localFileDetail() {
+        return JobBuilder.newJob(LocalFileJob.class).withIdentity("LocalFileJob").storeDurably().build();
+    }
+
+    @Bean
+    public JobDetail ftpFileDetail() {
+        return JobBuilder.newJob(FtpFileJob.class).withIdentity("FtpFileJob").storeDurably().build();
     }
 
     @Bean
     public Trigger localFileServiceTrigger() {
-        SimpleScheduleBuilder simpleScheduleBuilder = SimpleScheduleBuilder.simpleSchedule()
-                .withIntervalInSeconds(jobInterval).repeatForever();
-        return TriggerBuilder.newTrigger().forJob(localFileServiceDetail())
-                .withIdentity("LocalFileService")
-                .withSchedule(simpleScheduleBuilder)
+        return TriggerBuilder.newTrigger().forJob(localFileDetail())
+                .withIdentity("LocalFileJob")
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                        .withIntervalInSeconds(jobInterval).repeatForever())
+                .build();
+    }
+
+    @Bean
+    public Trigger ftpFileServiceTrigger() {
+        return TriggerBuilder.newTrigger().forJob(ftpFileDetail())
+                .withIdentity("FtpFileJob")
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                        .withIntervalInSeconds(jobInterval).repeatForever())
                 .build();
     }
 }
