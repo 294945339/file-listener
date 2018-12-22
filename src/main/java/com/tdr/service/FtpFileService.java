@@ -2,6 +2,7 @@ package com.tdr.service;
 
 import cn.hutool.log.Log;
 import cn.hutool.log.LogFactory;
+import com.tdr.util.FileDownloadUtil;
 import com.tdr.util.FileSizeUtil;
 import com.tdr.util.PathUtil;
 import org.apache.commons.net.ftp.FTPFile;
@@ -50,7 +51,9 @@ public class FtpFileService {
             ftpClient.setFileType(FTPClient.BINARY_FILE_TYPE);
             ftpClient.makeDirectory(ftpPath);
             ftpClient.changeWorkingDirectory(ftpPath);
-            ftpClient.storeFile(fileName, inputStream);
+            String doingName = FileDownloadUtil.localFileIsDoing(fileName);
+            ftpClient.storeFile(doingName, inputStream);
+            ftpClient.rename(doingName, fileName);
             flag = true;
             log.info("本地文件上传成功:" + fileName + ";保存到:" + ftpPath);
         } catch (Exception e) {
@@ -179,6 +182,7 @@ public class FtpFileService {
      * */
     public boolean downloadFile(String remoteFileName, String localPath, String remoteDownLoadPath, FTPClient ftpClient) {
         String strFilePath = localPath + System.getProperty("file.separator") + remoteFileName;
+        strFilePath = FileDownloadUtil.localFileIsDoing(strFilePath);
         BufferedOutputStream outStream = null;
         boolean success = false;
         try {
@@ -199,6 +203,9 @@ public class FtpFileService {
                     e.printStackTrace();
                 }
             }
+        }
+        if (success) {
+            FileDownloadUtil.localFileIsDone(strFilePath);
         }
         return success;
     }
@@ -227,21 +234,18 @@ public class FtpFileService {
                     }
                 }
             }
-
+            for (int currentFile = 0; currentFile < allFile.length; currentFile++) {
+                if (allFile[currentFile].isDirectory()) {
+                    filePath = PathUtil.getLocalUploadPath(allFile[currentFile].getName(), localFileDownloadPath);
+                    String strremoteDirectoryPath = ftpFileUploadPath + System.getProperty("file.separator") + allFile[currentFile].getName();
+                    downLoadDirectory(filePath, strremoteDirectoryPath);
+                }
+            }
             allFile = ftpClient.listFiles(ftpFileUploadPath);
             //如果文件夹下面的文件为空,则删除文件夹
             if (0 == allFile.length) {
                 this.deleteFileDir(ftpFileUploadPath, ftpClient);
             }
-
-            for (int currentFile = 0; currentFile < allFile.length; currentFile++) {
-                if (allFile[currentFile].isDirectory()) {
-                    filePath = PathUtil.getLocalUploadPath(allFile[currentFile].getName(), localFileDownloadPath);
-                    String strremoteDirectoryPath = ftpFileUploadPath + "/" + allFile[currentFile].getName();
-                    downLoadDirectory(filePath, strremoteDirectoryPath);
-                }
-            }
-
         } catch (IOException e) {
             e.printStackTrace();
             log.error("FTP文件批量下载失败:" + ftpFileUploadPath + ";原因:" + e);

@@ -59,7 +59,6 @@ public class LocalFileService {
         boolean base = false;
         try {
             base = ftpFileService.uploadFileFromProduction(localFile.getPath(), ftpFileDownloadPath);
-//            base = ftpFileService.uploadDirectory(localFilePath, ftpFileDownloadPath);
         } catch (Exception e) {
             e.printStackTrace();
         }
